@@ -1,0 +1,28 @@
+language: generic
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t anton95/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true anton95/react-test npm test
+    
+after_success:
+    - docker build -t anton95/multi-client ./client
+    - docker build -t anton95/multi-nginx ./nginx
+    - docker build -t anton95/multi-server ./server
+    - docker build -t anton95/multi-worker ./worker
+    
+    # Log in the Docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    
+    # Push images to Docker hub
+    - docker push anton95/multi-client
+    - docker push anton95/multi-nginx
+    - docker push anton95/multi-server
+    - docker push anton95/multi-worker
+    
+    
+    
